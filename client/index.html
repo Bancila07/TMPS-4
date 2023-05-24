@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Management Application</title>
+    <style>
+        .task-list {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="task-list">
+    <h2>Task List:</h2>
+    <ul id="task-list"></ul>
+</div>
+
+<form id="add-task-form">
+    <input type="text" id="task-input" placeholder="Enter task" />
+    <button type="submit">Add Task</button>
+</form>
+
+<script>
+    // JavaScript code goes here
+    // Observer Pattern
+
+    // Subject (TaskManager)
+    class TaskManager {
+        constructor() {
+            this.tasks = [];
+            this.observers = [];
+        }
+
+        registerObserver(observer) {
+            this.observers.push(observer);
+        }
+
+        unregisterObserver(observer) {
+            this.observers = this.observers.filter(obs => obs !== observer);
+        }
+
+        notifyObservers() {
+            this.observers.forEach(observer => observer.update(this.tasks));
+        }
+
+        addTask(task) {
+            this.tasks.push(task);
+            this.notifyObservers();
+        }
+
+        removeTask(task) {
+            this.tasks = this.tasks.filter(t => t !== task);
+            this.notifyObservers();
+        }
+    }
+
+    // Observer (TaskList)
+    class TaskList {
+        constructor() {
+            this.tasks = [];
+        }
+
+        update(tasks) {
+            this.tasks = tasks;
+            this.render();
+        }
+
+        render() {
+            const taskListElement = document.getElementById('task-list');
+            taskListElement.innerHTML = '';
+
+            this.tasks.forEach((task, index) => {
+                const listItem = document.createElement('li');
+                listItem.innerText = `${index + 1}. ${task}`;
+                taskListElement.appendChild(listItem);
+            });
+        }
+    }
+
+    // Command Pattern
+
+    // Command
+    class AddTaskCommand {
+        constructor(taskManager, task) {
+            this.taskManager = taskManager;
+            this.task = task;
+        }
+
+        execute() {
+            this.taskManager.addTask(this.task);
+        }
+    }
+
+    // Command
+    class RemoveTaskCommand {
+        constructor(taskManager, task) {
+            this.taskManager = taskManager;
+            this.task = task;
+        }
+
+        execute() {
+            this.taskManager.removeTask(this.task);
+        }
+    }
+
+    // Iterator Pattern
+
+    // Iterator
+    class TaskIterator {
+        constructor(tasks) {
+            this.tasks = tasks;
+            this.index = 0;
+        }
+
+        hasNext() {
+            return this.index < this.tasks.length;
+        }
+
+        next() {
+            if (this.hasNext()) {
+                return this.tasks[this.index++];
+            }
+            return null;
+        }
+    }
+
+    // Usage
+
+    // Create task manager
+    const taskManager = new TaskManager();
+
+    // Create task list observer
+    const taskList = new TaskList();
+
+    // Register task list as an observer
+    taskManager.registerObserver(taskList);
+
+    // Add tasks using commands
+    const addTaskForm = document.getElementById('add-task-form');
+    const taskInput = document.getElementById('task-input');
+
+    addTaskForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const task = taskInput.value.trim();
+        if (task !== '') {
+            const addTaskCommand = new AddTaskCommand(taskManager, task);
+            addTaskCommand.execute();
+            taskInput.value = '';
+        }
+    });
+
+    // Remove a task using a command
+    // For demonstration purposes, removing the first task automatically after 3 seconds
+    setTimeout(() => {
+        const tasks = taskManager.tasks;
+        if (tasks.length > 0) {
+            const removeTaskCommand = new RemoveTaskCommand(taskManager, tasks[0]);
+            removeTaskCommand.execute();
+        }
+    }, 3000);
+
+    // Create iterator and iterate over tasks
+    const iterator = new TaskIterator(taskManager.tasks);
+    while (iterator.hasNext()) {
+        console.log(iterator.next());
+    }
+</script>
+</body>
+</html>
